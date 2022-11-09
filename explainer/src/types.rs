@@ -18,6 +18,19 @@ pub struct ColumnType {
     pub nullable: bool,
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub enum Constraint {
+    Count(usize),
+    Types(Vec<ColumnType>),
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub struct StatementInfo {
+    pub read_only: bool,
+    pub input_constraint: Constraint,
+    pub output_constraint: Constraint,
+}
+
 impl FromStr for DataType {
     type Err = anyhow::Error;
 
