@@ -1,0 +1,10 @@
+[package]
+name = "explainer"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1"
+libsqlite3-sys = { package = "libsqlite3-sys-for-explainer", path = "../libsqlite3-sys", features = ["bundled"] }
