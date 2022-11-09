@@ -1,3 +1,4 @@
+pub mod ffi;
 pub mod types;
 
 pub fn add(left: usize, right: usize) -> usize {

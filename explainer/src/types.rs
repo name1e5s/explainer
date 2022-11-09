@@ -12,6 +12,12 @@ pub enum DataType {
     Blob,
 }
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+pub struct ColumnType {
+    pub data_type: DataType,
+    pub nullable: bool,
+}
+
 impl FromStr for DataType {
     type Err = anyhow::Error;
 
