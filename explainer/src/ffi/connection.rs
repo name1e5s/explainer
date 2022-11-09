@@ -55,6 +55,32 @@ impl Connection {
         }
         Ok(())
     }
+
+    pub fn load_all<F, T, E>(&self, query: &CStr, f: F) -> Result<Vec<T>, E>
+    where
+        F: Fn(&Row) -> Result<T, E>,
+        E: From<SqliteError>,
+    {
+        let mut result = Vec::new();
+        let mut error = None;
+        self.exec(
+            query,
+            Some(&mut |row| match f(row) {
+                Ok(value) => {
+                    result.push(value);
+                    true
+                }
+                Err(e) => {
+                    error = Some(e);
+                    false
+                }
+            }),
+        )?;
+        match error {
+            Some(e) => Err(e),
+            None => Ok(result),
+        }
+    }
 }
 
 impl Drop for Connection {
@@ -111,5 +137,16 @@ mod tests {
         )
         .unwrap();
         assert_eq!(count, 1);
+    }
+
+    #[test]
+    fn test_load_all() {
+        let path = CString::new(":memory:").unwrap();
+        let conn = Connection::establish(&path).unwrap();
+        let query = CString::new("SELECT 1").unwrap();
+        let result = conn
+            .load_all(&query, |row| anyhow::Ok(row.column_int(0)))
+            .unwrap();
+        assert_eq!(result, vec![1]);
     }
 }
