@@ -1,3 +1,4 @@
+pub mod explain;
 pub mod ffi;
 pub mod types;
 pub mod utils;

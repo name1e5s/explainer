@@ -283,7 +283,7 @@ mod build_bundled {
         }
         println!("cargo:rerun-if-env-changed=LIBSQLITE3_FLAGS");
 
-        cfg.compile(lib_name);
+        cfg.compile("sqlite3_for_explainer");
 
         println!("cargo:lib_dir={out_dir}");
     }
