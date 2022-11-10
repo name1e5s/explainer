@@ -1,9 +1,11 @@
 use std::str::FromStr;
 
 use anyhow::bail;
+use libsqlite3_sys::{SQLITE_BLOB, SQLITE_FLOAT, SQLITE_INTEGER, SQLITE_TEXT};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum DataType {
+    Null,
     Bool,
     Int,
     BigInt,
@@ -16,6 +18,27 @@ pub enum DataType {
 pub struct ColumnType {
     pub data_type: DataType,
     pub nullable: bool,
+}
+
+impl ColumnType {
+    pub fn from_type_code(type_code: i32) -> ColumnType {
+        match type_code {
+            SQLITE_INTEGER => Some(DataType::Int),
+            SQLITE_FLOAT => Some(DataType::Real),
+            SQLITE_TEXT => Some(DataType::Text),
+            SQLITE_BLOB => Some(DataType::Blob),
+            _ => None,
+        }
+        .map(|v| ColumnType {
+            data_type: v,
+            // SqliteType can generate T and Option<T>
+            nullable: false,
+        })
+        .unwrap_or(ColumnType {
+            data_type: DataType::Null,
+            nullable: true,
+        })
+    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]

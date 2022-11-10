@@ -1,5 +1,6 @@
 pub mod ffi;
 pub mod types;
+pub mod utils;
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right

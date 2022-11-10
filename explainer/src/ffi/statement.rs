@@ -5,9 +5,9 @@ use std::{
 
 use libsqlite3_sys::{
     sqlite3, sqlite3_bind_parameter_count, sqlite3_column_count, sqlite3_column_database_name,
-    sqlite3_column_origin_name, sqlite3_column_table_name, sqlite3_db_handle, sqlite3_finalize,
-    sqlite3_step, sqlite3_stmt, sqlite3_stmt_readonly, sqlite3_table_column_metadata, SQLITE_DONE,
-    SQLITE_OK, SQLITE_ROW,
+    sqlite3_column_origin_name, sqlite3_column_table_name, sqlite3_column_type, sqlite3_db_handle,
+    sqlite3_finalize, sqlite3_step, sqlite3_stmt, sqlite3_stmt_readonly,
+    sqlite3_table_column_metadata, SQLITE_DONE, SQLITE_OK, SQLITE_ROW,
 };
 
 use crate::types::{ColumnType, DataType};
@@ -43,7 +43,12 @@ impl Statement {
         unsafe { sqlite3_column_count(self.0.as_ptr()) as usize }
     }
 
-    pub fn column_type(&self, index: usize) -> anyhow::Result<Option<ColumnType>> {
+    pub fn column_type(&self, index: usize) -> ColumnType {
+        let type_code = unsafe { sqlite3_column_type(self.0.as_ptr(), index as c_int) };
+        ColumnType::from_type_code(type_code)
+    }
+
+    pub fn column_database_type(&self, index: usize) -> anyhow::Result<Option<ColumnType>> {
         unsafe {
             // https://sqlite.org/c3ref/column_database_name.html
             //
@@ -123,5 +128,53 @@ impl Drop for Statement {
                 panic!("{}", msg);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{cstr, ffi::connection::Connection};
+
+    use super::*;
+    #[test]
+    fn test_get_types() -> anyhow::Result<()> {
+        let conn = Connection::establish(cstr!(":memory:"))?;
+        conn.exec(
+            cstr!("CREATE TABLE kv(key bigint not null, value bigint)"),
+            None,
+        )?;
+        let stmt = conn.prepare(cstr!("SELECT * FROM kv WHERE key = ?"))?;
+        assert_eq!(stmt.bind_parameter_count(), 1);
+        assert_eq!(stmt.column_count(), 2);
+        assert_eq!(
+            stmt.column_database_type(0)?.unwrap(),
+            ColumnType {
+                data_type: DataType::BigInt,
+                nullable: false,
+            }
+        );
+        assert_eq!(
+            stmt.column_database_type(1)?.unwrap(),
+            ColumnType {
+                data_type: DataType::BigInt,
+                nullable: true,
+            }
+        );
+        let mut stmt = conn.prepare(cstr!("pragma table_info(kv)"))?;
+        let _ = stmt.step();
+        assert_eq!(stmt.column_count(), 6);
+        assert_eq!(stmt.column_database_type(0)?, None);
+        assert_eq!(
+            stmt.column_type(0),
+            ColumnType {
+                data_type: DataType::Int,
+                nullable: false,
+            }
+        );
+        assert_eq!(stmt.column_type(4), ColumnType {
+            data_type: DataType::Null,
+            nullable: true,
+        });
+        Ok(())
     }
 }
