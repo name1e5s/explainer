@@ -102,7 +102,7 @@ impl Statement {
 
             Ok(Some(ColumnType {
                 data_type,
-                nullable: not_null == 0,
+                nullable: Some(not_null == 0),
             }))
         }
     }
@@ -150,14 +150,14 @@ mod tests {
             stmt.column_database_type(0)?.unwrap(),
             ColumnType {
                 data_type: DataType::BigInt,
-                nullable: false,
+                nullable: Some(false),
             }
         );
         assert_eq!(
             stmt.column_database_type(1)?.unwrap(),
             ColumnType {
                 data_type: DataType::BigInt,
-                nullable: true,
+                nullable: Some(true),
             }
         );
         let mut stmt = conn.prepare(cstr!("pragma table_info(kv)"))?;
@@ -168,13 +168,16 @@ mod tests {
             stmt.column_type(0),
             ColumnType {
                 data_type: DataType::Int,
-                nullable: false,
+                nullable: Some(false),
             }
         );
-        assert_eq!(stmt.column_type(4), ColumnType {
-            data_type: DataType::Null,
-            nullable: true,
-        });
+        assert_eq!(
+            stmt.column_type(4),
+            ColumnType {
+                data_type: DataType::Null,
+                nullable: Some(true),
+            }
+        );
         Ok(())
     }
 }

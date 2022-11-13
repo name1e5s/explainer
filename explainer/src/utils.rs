@@ -1,15 +1,15 @@
 use std::ffi::CStr;
 
 /// Get static CStr from a string literal
-/// 
+///
 /// NUL bytes in the string literal are not allowed.
 /// # Example
-/// 
+///
 /// ```
 /// # use explainer::cstr;
 /// let cstr = cstr!("Hello, world!");
 /// ```
-/// 
+///
 /// ```compile_fail
 /// # use explainer::cstr;
 /// let cstr = cstr!("Hello, \0world!");

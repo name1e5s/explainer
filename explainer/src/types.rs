@@ -17,7 +17,7 @@ pub enum DataType {
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct ColumnType {
     pub data_type: DataType,
-    pub nullable: bool,
+    pub nullable: Option<bool>,
 }
 
 impl ColumnType {
@@ -32,11 +32,11 @@ impl ColumnType {
         .map(|v| ColumnType {
             data_type: v,
             // SqliteType can generate T and Option<T>
-            nullable: false,
+            nullable: Some(false),
         })
         .unwrap_or(ColumnType {
             data_type: DataType::Null,
-            nullable: true,
+            nullable: Some(true),
         })
     }
 }
