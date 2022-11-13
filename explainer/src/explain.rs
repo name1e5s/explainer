@@ -233,7 +233,7 @@ impl CursorDataType {
 fn affinity_to_type(affinity: u8) -> DataType {
     match affinity {
         SQLITE_AFF_BLOB => DataType::Blob,
-        SQLITE_AFF_INTEGER => DataType::BigInt,
+        SQLITE_AFF_INTEGER => DataType::Int,
         SQLITE_AFF_REAL => DataType::Real,
         SQLITE_AFF_TEXT => DataType::Text,
 
@@ -247,7 +247,8 @@ fn opcode_to_type(op: &str) -> DataType {
         OP_REAL => DataType::Real,
         OP_BLOB => DataType::Blob,
         OP_AND | OP_OR => DataType::Bool,
-        OP_ROWID | OP_COUNT | OP_INT64 | OP_INTEGER => DataType::BigInt,
+        OP_INT64 => DataType::BigInt,
+        OP_ROWID | OP_COUNT | OP_INTEGER => DataType::Int,
         OP_STRING8 => DataType::Text,
         OP_COLUMN | _ => DataType::Null,
     }
