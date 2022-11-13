@@ -66,7 +66,7 @@ impl Statement {
             }
 
             let mut not_null: c_int = 0;
-            let mut data_type = std::ptr::null();
+            let mut datatype = std::ptr::null();
 
             // https://sqlite.org/c3ref/table_column_metadata.html
             let status = sqlite3_table_column_metadata(
@@ -75,7 +75,7 @@ impl Statement {
                 table_name,
                 origin_name,
                 // function docs state to provide NULL for return values you don't care about
-                &mut data_type,
+                &mut datatype,
                 std::ptr::null_mut(),
                 &mut not_null,
                 std::ptr::null_mut(),
@@ -94,14 +94,14 @@ impl Statement {
                 return Err(SqliteError::new(self.db_handle()).into());
             }
 
-            if data_type.is_null() {
+            if datatype.is_null() {
                 return Ok(None);
             }
 
-            let data_type: DataType = CStr::from_ptr(data_type).to_str()?.parse()?;
+            let datatype: DataType = CStr::from_ptr(datatype).to_str()?.parse()?;
 
             Ok(Some(ColumnType {
-                data_type,
+                datatype,
                 nullable: Some(not_null == 0),
             }))
         }
@@ -149,14 +149,14 @@ mod tests {
         assert_eq!(
             stmt.column_database_type(0)?.unwrap(),
             ColumnType {
-                data_type: DataType::BigInt,
+                datatype: DataType::BigInt,
                 nullable: Some(false),
             }
         );
         assert_eq!(
             stmt.column_database_type(1)?.unwrap(),
             ColumnType {
-                data_type: DataType::BigInt,
+                datatype: DataType::BigInt,
                 nullable: Some(true),
             }
         );
@@ -167,14 +167,14 @@ mod tests {
         assert_eq!(
             stmt.column_type(0),
             ColumnType {
-                data_type: DataType::Int,
+                datatype: DataType::Int,
                 nullable: Some(false),
             }
         );
         assert_eq!(
             stmt.column_type(4),
             ColumnType {
-                data_type: DataType::Null,
+                datatype: DataType::Null,
                 nullable: Some(true),
             }
         );

@@ -16,7 +16,7 @@ pub enum DataType {
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct ColumnType {
-    pub data_type: DataType,
+    pub datatype: DataType,
     pub nullable: Option<bool>,
 }
 
@@ -30,12 +30,12 @@ impl ColumnType {
             _ => None,
         }
         .map(|v| ColumnType {
-            data_type: v,
+            datatype: v,
             // SqliteType can generate T and Option<T>
             nullable: Some(false),
         })
         .unwrap_or(ColumnType {
-            data_type: DataType::Null,
+            datatype: DataType::Null,
             nullable: Some(true),
         })
     }
@@ -50,8 +50,9 @@ pub enum Constraint {
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct StatementInfo {
     pub read_only: bool,
-    pub input_constraint: Constraint,
-    pub output_constraint: Constraint,
+    pub input_length: usize,
+    pub output_length: usize,
+    pub output_types: Vec<Option<ColumnType>>,
 }
 
 impl FromStr for DataType {

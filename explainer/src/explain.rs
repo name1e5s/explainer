@@ -1,6 +1,7 @@
 // taken from sqlx
 use crate::cstr;
 use crate::ffi::connection::Connection;
+use crate::types::ColumnType;
 use crate::types::DataType;
 use anyhow::Error;
 use std::collections::HashMap;
@@ -117,12 +118,6 @@ const OP_REMAINDER: &str = "Remainder";
 const OP_CONCAT: &str = "Concat";
 const OP_RESULT_ROW: &str = "ResultRow";
 const OP_HALT: &str = "Halt";
-
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
-struct ColumnType {
-    pub datatype: DataType,
-    pub nullable: Option<bool>,
-}
 
 impl Default for ColumnType {
     fn default() -> Self {
@@ -330,10 +325,7 @@ struct QueryState {
 }
 
 // Opcode Reference: https://sqlite.org/opcode.html
-pub fn explain(
-    conn: &Connection,
-    query: &str,
-) -> Result<(Vec<DataType>, Vec<Option<bool>>), Error> {
+pub fn explain(conn: &Connection, query: &str) -> Result<Vec<ColumnType>, Error> {
     let root_block_cols = root_block_columns(conn)?;
     let query = {
         let s = format!("EXPLAIN {query}");
@@ -818,10 +810,14 @@ pub fn explain(
 
     let output = output
         .into_iter()
-        .map(|o| o.unwrap_or(DataType::Null))
+        .zip(nullable.into_iter())
+        .map(|(datatype, nullable)| ColumnType {
+            datatype: datatype.unwrap_or(DataType::Null),
+            nullable,
+        })
         .collect();
 
-    Ok((output, nullable))
+    Ok(output)
 }
 
 #[cfg(test)]
